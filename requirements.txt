@@ -5,3 +5,6 @@ twilio
 pydantic
 rapidfuzz
 python-multipart
+
+openai
+google-genai

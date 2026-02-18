@@ -1,5 +1,7 @@
+from .llm import generate_agro_response
 from .data import CATEGORIES
 from .state import get_state, set_state
+import re
 
 def build_main_menu():
     text = "🌱 *Asistente Agro*\n\nSelecciona una categoría:\n\n"
@@ -26,6 +28,10 @@ def handle_message(user, incoming):
     state = get_state(user)
     text = incoming.strip().lower()
 
+    match = re.search(r"\d+", text)
+    if match:
+        text = match.group()
+
     # VOLVER AL MENÚ
     if text == "menu":
         set_state(user, {"level": "menu"})
@@ -44,17 +50,18 @@ def handle_message(user, incoming):
     # DENTRO DE CATEGORÍA
     if state["level"] == "category":
         category_key = state["category"]
+        category_title = CATEGORIES[category_key]["title"]
         questions = CATEGORIES[category_key]["questions"]
 
         try:
             index = int(text) - 1
             question = questions[index]
 
-            # Aquí luego puedes conectar LLM
+            answer = generate_agro_response(category_title, question)
+
             return (
-                f"📌 *Pregunta seleccionada:*\n\n"
-                f"{question}\n\n"
-                f"(Aquí irá la respuesta técnica personalizada)\n\n"
+                f"📌 *{question}*\n\n"
+                f"{answer}\n\n"
                 f"Escribe 'menu' para volver."
             )
         except:

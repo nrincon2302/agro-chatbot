@@ -1,13 +1,3 @@
-WELCOME = (
-    "¡Hola! 👋\n\n"
-    "En este chat podemos aclarar tus dudas sobre modernización agrícola.\n\n"
-    "Selecciona una categoría:\n"
-    "1️⃣ Ganadería\n"
-    "2️⃣ Avicultura\n"
-    "3️⃣ Cunicultura\n"
-    "4️⃣ Hortalizas"
-)
-
 CATEGORIES = {
     "ganaderia": {
         "emoji": "🐄",
@@ -44,7 +34,7 @@ CATEGORIES = {
     },
     "hortalizas": {
         "emoji": "🥬",
-        "title": "Hortalizas y papa",
+        "title": "Hortalizas",
         "questions": [
             "¿Cómo mejorar el pH del suelo?",
             "¿Qué análisis de suelo debo hacer?",

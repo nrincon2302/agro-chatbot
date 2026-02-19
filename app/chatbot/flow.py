@@ -1,70 +1,76 @@
-from .llm import generate_agro_response
 from .data import CATEGORIES
 from .state import get_state, set_state
-import re
-
-def build_main_menu():
-    text = "🌱 *Asistente Agro*\n\nSelecciona una categoría:\n\n"
-    for i, key in enumerate(CATEGORIES.keys(), start=1):
-        cat = CATEGORIES[key]
-        text += f"{i}️⃣ {cat['emoji']} {cat['title']}\n"
-    text += "\nResponde con el número."
-    return text
+from .llm import generate_agro_response
 
 
-def build_questions_menu(category_key):
-    cat = CATEGORIES[category_key]
-    text = f"{cat['emoji']} *{cat['title']}*\n\nSelecciona una pregunta:\n\n"
-    
-    for i, q in enumerate(cat["questions"], start=1):
-        text += f"{i}. {q}\n"
-    
-    text += "\nEscribe el número o escribe 'menu' para volver."
-    return text
+def handle_message(user, text):
 
-
-def handle_message(user, incoming):
-
+    text = text.strip().lower()
     state = get_state(user)
-    text = incoming.strip().lower()
 
-    match = re.search(r"\d+", text)
-    if match:
-        text = match.group()
+    # --- Selección categoría ---
+    if text.startswith("cat_"):
+        category_key = text.replace("cat_", "")
 
-    # VOLVER AL MENÚ
-    if text == "menu":
-        set_state(user, {"level": "menu"})
-        return build_main_menu()
+        if category_key not in CATEGORIES:
+            return {"type": "menu"}
 
-    # MENÚ PRINCIPAL
-    if state["level"] == "menu":
+        set_state(user, {"level": "category", "category": category_key})
+
+        return {"type": "questions", "category": category_key}
+
+    # --- Selección pregunta ---
+    if text.startswith("q_"):
+        parts = text.split("_")
+
+        if len(parts) != 3:
+            return {"type": "menu"}
+
+        _, category_key, index = parts
+
+        if category_key not in CATEGORIES:
+            return {"type": "menu"}
+
         try:
-            index = int(text) - 1
-            category_key = list(CATEGORIES.keys())[index]
-            set_state(user, {"level": "category", "category": category_key})
-            return build_questions_menu(category_key)
+            index = int(index)
         except:
-            return build_main_menu()
+            return {"type": "menu"}
 
-    # DENTRO DE CATEGORÍA
-    if state["level"] == "category":
-        category_key = state["category"]
-        category_title = CATEGORIES[category_key]["title"]
         questions = CATEGORIES[category_key]["questions"]
 
-        try:
-            index = int(text) - 1
-            question = questions[index]
+        if index >= len(questions):
+            return {"type": "menu"}
 
-            answer = generate_agro_response(category_title, question)
+        question = questions[index]
 
-            return (
-                f"📌 *{question}*\n\n"
-                f"{answer}\n\n"
-                f"Escribe 'menu' para volver."
-            )
-        except:
-            return build_questions_menu(category_key)
+        answer = generate_agro_response(
+            CATEGORIES[category_key]["title"],
+            question
+        )
 
-    return build_main_menu()
+        return {
+            "type": "answer",
+            "text": f"📌 *{question}*\n\n{answer}"
+        }
+
+    # --- Volver ---
+    if text == "menu_back":
+        set_state(user, {"level": "menu"})
+        return {"type": "menu"}
+
+    # --- Texto libre dentro de categoría ---
+    if state["level"] == "category":
+        category_key = state["category"]
+
+        answer = generate_agro_response(
+            CATEGORIES[category_key]["title"],
+            text
+        )
+
+        return {
+            "type": "answer",
+            "text": f"🧠 Respuesta técnica:\n\n{answer}"
+        }
+
+    # --- Inicio ---
+    return {"type": "menu"}

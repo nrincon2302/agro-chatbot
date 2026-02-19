@@ -45,7 +45,6 @@ Pregunta del productor:
         return response.text.strip()
 
     except Exception as e:
-        print("ERROR GEMINI:", e)
         return "⚠️ El asistente técnico está temporalmente no disponible."
 
 
@@ -75,5 +74,4 @@ Pregunta del productor:
 #         return response.choices[0].message.content
 
 #     except Exception as e:
-#         print("ERROR OPENAI:", e)
 #         return "Error generando respuesta técnica."

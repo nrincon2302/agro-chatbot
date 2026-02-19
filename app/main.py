@@ -1,10 +1,10 @@
+import os
+from fastapi import FastAPI, Request
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, Request
-import os
-
 from app.services.whatsapp_service import send_text, send_buttons, send_list
+from app.chatbot.state import get_state
 from app.chatbot.flow import handle_message
 from app.chatbot.data import CATEGORIES
 
@@ -38,8 +38,6 @@ async def verify_webhook(request: Request):
 async def webhook(request: Request):
 
     data = await request.json()
-    print("INCOMING:", data)
-
     try:
         entry = data["entry"][0]
         changes = entry["changes"][0]
@@ -64,7 +62,6 @@ async def webhook(request: Request):
         else:
             text = message["text"]["body"]
 
-
         reply = handle_message(from_number, text)
 
         # --- Render respuesta ---
@@ -86,8 +83,14 @@ async def webhook(request: Request):
 
             send_list(
                 from_number,
-                "🌱 *Asistente Agro*\nSelecciona un área:",
-                "Ver opciones",
+                "🌱 *Asistente Agro*\n\n"
+                "Soy tu asistente técnico especializado en producción agropecuaria.\n\n"
+                "Puedo ayudarte a:\n"
+                "• Calcular costos\n"
+                "• Mejorar productividad\n"
+                "• Resolver dudas técnicas\n\n"
+                "Selecciona un área para comenzar 👇",
+                "Ver áreas",
                 sections
             )
 
@@ -136,11 +139,35 @@ async def webhook(request: Request):
                     {
                         "type": "reply",
                         "reply": {
-                            "id": "menu_back",
+                            "id": "new_question",
                             "title": "Nueva consulta"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "menu_back",
+                            "title": "Volver al menú"
+                        }
+                    },
+                    {
+                        "type": "reply",
+                        "reply": {
+                            "id": "goodbye",
+                            "title": "Finalizar"
                         }
                     }
                 ]
+            )
+
+        elif reply["type"] == "goodbye":
+
+            send_text(
+                from_number,
+                "👋 *Gracias por usar Asistente Agro.*\n\n"
+                "Fue un gusto ayudarte.\n"
+                "Cuando necesites apoyo técnico, aquí estaré.\n\n"
+                "¡Hasta la próxima! 🌾"
             )
 
     except Exception as e:

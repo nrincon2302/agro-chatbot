@@ -1,47 +1,59 @@
 from .data import CATEGORIES
-from .state import get_state, set_state
+from .state import get_state, set_state, clear_state
 from .llm import generate_agro_response
 
 
 def handle_message(user, text):
 
     text = text.strip().lower()
-    state = get_state(user)
 
-    # --- Selección categoría ---
+    # 🔥 Volver manual al menú principal
+    if text == "menu_back":
+        clear_state(user)
+        return {"type": "menu"}
+
+    # 🔥 Nueva consulta en misma categoría
+    if text == "new_question":
+        category_key = get_state(user)
+
+        if category_key:
+            return {
+                "type": "questions",
+                "category": category_key
+            }
+        else:
+            return {"type": "menu"}
+        
+    # 🔥 Despedida
+    if text == "goodbye":
+        clear_state(user)
+        return {"type": "goodbye"}
+
+    # 🔥 Cambio de categoría
     if text.startswith("cat_"):
         category_key = text.replace("cat_", "")
 
-        if category_key not in CATEGORIES:
-            return {"type": "menu"}
+        if category_key in CATEGORIES:
+            set_state(user, category_key)
+            return {
+                "type": "questions",
+                "category": category_key
+            }
 
-        set_state(user, {"level": "category", "category": category_key})
+    # 🔥 Si ya hay categoría activa
+    category_key = get_state(user)
 
-        return {"type": "questions", "category": category_key}
-
-    # --- Selección pregunta ---
-    if text.startswith("q_"):
-        parts = text.split("_")
-
-        if len(parts) != 3:
-            return {"type": "menu"}
-
-        _, category_key, index = parts
-
-        if category_key not in CATEGORIES:
-            return {"type": "menu"}
-
-        try:
-            index = int(index)
-        except:
-            return {"type": "menu"}
-
-        questions = CATEGORIES[category_key]["questions"]
-
-        if index >= len(questions):
-            return {"type": "menu"}
-
-        question = questions[index]
+    if category_key:
+        # Pregunta sugerida
+        if text.startswith("q_"):
+            try:
+                _, category_key, index = text.split("_")
+                index = int(index)
+                question = CATEGORIES[category_key]["questions"][index]
+            except:
+                question = text
+        else:
+            question = text
 
         answer = generate_agro_response(
             CATEGORIES[category_key]["title"],
@@ -53,24 +65,5 @@ def handle_message(user, text):
             "text": f"📌 *{question}*\n\n{answer}"
         }
 
-    # --- Volver ---
-    if text == "menu_back":
-        set_state(user, {"level": "menu"})
-        return {"type": "menu"}
-
-    # --- Texto libre dentro de categoría ---
-    if state["level"] == "category":
-        category_key = state["category"]
-
-        answer = generate_agro_response(
-            CATEGORIES[category_key]["title"],
-            text
-        )
-
-        return {
-            "type": "answer",
-            "text": f"🧠 Respuesta técnica:\n\n{answer}"
-        }
-
-    # --- Inicio ---
+    # 🔥 Sin categoría → mostrar menú
     return {"type": "menu"}

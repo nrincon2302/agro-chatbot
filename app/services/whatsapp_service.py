@@ -33,9 +33,6 @@ def send_list(to, body_text, button_text, sections):
 
     response = requests.post(GRAPH_URL, headers=headers, json=payload)
 
-    print("WHATSAPP STATUS:", response.status_code)
-    print("WHATSAPP RESPONSE:", response.text)
-
     return response
 
 
@@ -57,9 +54,6 @@ def send_text(to, message):
     }
 
     response = requests.post(GRAPH_URL, headers=headers, json=payload)
-
-    print("WHATSAPP STATUS:", response.status_code)
-    print("WHATSAPP RESPONSE:", response.text)
 
     return response
 
@@ -87,8 +81,5 @@ def send_buttons(to, body_text, buttons):
     }
 
     response = requests.post(GRAPH_URL, headers=headers, json=payload)
-
-    print("WHATSAPP STATUS:", response.status_code)
-    print("WHATSAPP RESPONSE:", response.text)
 
     return response

@@ -42,5 +42,16 @@ CATEGORIES = {
             "¿Cómo controlar Fusarium?",
             "¿Cómo reducir costos sin bajar producción?"
         ]
-    }
+    },
+    "transformacion": {
+        "emoji": "🧺",
+        "title": "Transformación",
+        "questions": [
+            "¿Cuáles son las BPM básicas para transformación de lácteos?",
+            "¿Cómo clasificar y acondicionar papa para venta?",
+            "¿Qué requisitos sanitarios necesito para vender productos procesados?",
+            "¿Cómo mejorar el almacenamiento de mis productos?",
+            "¿Qué registros de inocuidad debo llevar?"
+        ]
+    },
 }
